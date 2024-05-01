@@ -1,16 +1,19 @@
 /* Задания на урок:
 
-1) Удалить все рекламные блоки со страницы (правая часть сайта)
+1) Реализовать функционал, что после заполнения формы и нажатия кнопки "Подтвердить" - новый фильм
+добавляется в список. Страница не должна перезагружаться.
+Новый фильм должен добавляться в movieDB.movies.
+Для полученмя доступа к значению input - обращаемся к нему как input.value;
+P.S. Здесь есть несколько вариантов решения задачи, принимается любой, но рабочий.
 
-2) Изменить жанр фильма, поменять "комедия" на "драма"
+2) Если название фильма больше, чем 21 символ - обрезать его и добавить три точки.
 
-3) Изменить задний фон постера с фильмом на изображение "bg.jpg". Оно лежит в папке img.
-Реализовать только при помощи JS
+3) При клике на мусорную корзину - элемент будет удаляться из списка (сложно)
 
-4) Список фильмов на странице сформировать на основании данных из этого JS файла.
-Отсортировать их по алфавиту 
+4) Если в форме стоит галочка "Сделать любимым" - в консоль вывести сообщение:
+"Добавляем любимый фильм"
 
-5) Добавить нумерацию выведенных фильмов */
+5) Фильмы должны быть отсортированы по алфавиту */
 
 'use strict';
 
@@ -20,44 +23,92 @@ const movieDB = {
         "Лига справедливости",
         "Ла-ла лэнд",
         "Одержимость",
-        "Скотт Пилигрим против..."
+        "Скотт Пилигрим против"
     ]
 }; 
 
 // #1 
-const promoAdv = document.querySelector('.promo__adv');
-promoAdv.remove();
+const adv = document.querySelectorAll('.promo__adv img'),
+      poster = document.querySelector('.promo__bg'),
+      genre = poster.querySelector('.promo__genre'),
+      movieList = document.querySelector('.promo__interactive-list'),
+      addForm = document.querySelector('form.add'),
+      addInput = addForm.querySelector('.adding__input'),
+      checkbox = addForm.querySelector('[type="checkbox"]');
+    
 
 
-// #2
-const promoBackground = document.querySelector('.promo__bg'),
-      promoGenre = promoBackground.querySelector('.promo__genre');
+addForm.addEventListener('submit', (event) => {
+    event.preventDefault();
 
-promoGenre.textContent = 'Драма';
+    let newFilm = addInput.value;
+    const favorite = checkbox.checked;
 
-// #3
-promoBackground.style = 'background: url(../img/bg.jpg) center center / cover no-repeat;'
+    if (newFilm) {
+        if (newFilm.length > 21) {
+            newFilm = `${newFilm.substring(0, 22)}...`
+        }
 
+        if (favorite) {
+            console.log("Добавляем любимый фильм");
+        }
+    
+        movieDB.movies.push(newFilm);
+        sortedArr(movieDB.movies);
+        createMovieList(movieDB.movies, movieList);
+    }
 
-// #4  && #5
-
-const promoInteractiveList = document.querySelector('.promo__interactive-list'),
-      promoInteractive = document.querySelector('.promo__interactive'),
-      movieList = document.createElement('ul');
-
-const sortedMovies = movieDB.movies.sort();  
-
-sortedMovies.forEach((item, i) => {
-    let movie = document.createElement('li');
-    movie.textContent = `${i+1} ${item}`;
-    movie.classList.add('promo__interactive-item');
-    movieList.append(movie); 
+    event.target.reset();
 })
 
-movieList.classList.add('promo__interactive-list');
 
-promoInteractiveList.replaceWith(movieList);
+const deleteAdv = (arr) => {
+    arr.forEach(item => {
+        item.remove();
+    })
+}
 
+
+
+const makeChanges = () => {
+    genre.textContent = 'Драма';
+    poster.style.backgroundImage = 'url(../img/bg.jpg)';
+}
+
+
+
+const sortedArr = (arr) => {
+    arr.sort();
+}
+
+
+function createMovieList(films, parent) {
+    parent.innerHTML = "";
+    sortedArr(films);
+    films.forEach((film, i)=> {
+        parent.innerHTML += `
+        <li class="promo__interactive-item">${i+1} ${film}
+            <div class="delete"></div>
+        </li>
+        `;
+    });
+
+    document.querySelectorAll('.delete').forEach((btn, i) => {
+        btn.addEventListener('click', () => {
+            btn.parentElement.remove();
+            movieDB.movies.splice(i, 1);
+            createMovieList(movieDB.movies, movieList);
+        })
+    })
+}
+
+
+
+
+
+deleteAdv(adv);
+makeChanges();
+createMovieList(movieDB.movies, movieList);
 
 
 
